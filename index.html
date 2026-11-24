@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quizy</title>
+<style>
+:root{--bg:#f5f4fb;--card:#fff;--tx:#1d1d28;--mut:#6c6c7a;--bd:#e4e2f0;--ac:#6c5ce7;--ac2:#a06cf0;--ok:#1a9d55;--bad:#d64545;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111118;--card:#1b1b25;--tx:#f0f0f5;--mut:#9d9dae;--bd:#2c2c3a}}
+:root[data-theme="dark"]{--bg:#111118;--card:#1b1b25;--tx:#f0f0f5;--mut:#9d9dae;--bd:#2c2c3a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif}
+.top{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
+.top .in{max-width:860px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:20px}
+.top nav{display:flex;gap:4px;align-items:center}
+.top button{background:transparent;border:0;color:#fff;opacity:.8;padding:7px 12px;border-radius:999px;display:flex;gap:6px;align-items:center}
+.top button.on{background:rgba(255,255,255,.22);opacity:1}
+.wrap{max-width:860px;margin:0 auto;padding:18px 16px 60px}
+button,select,input,textarea{font:inherit;color:var(--tx)}
+button{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;cursor:pointer}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button.danger{color:var(--bad)}button:disabled{opacity:.5}
+input[type=text],input[type=password],textarea{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+textarea{min-height:60px;resize:vertical}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}
+.hero{text-align:center;padding:30px 8px 16px}.hero h1{font-size:clamp(28px,6vw,42px);margin:0 0 8px;letter-spacing:-.03em}
+.hero p{color:var(--mut);max-width:520px;margin:0 auto}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.big{text-align:left;padding:20px}.big b{display:block;font-size:18px}.big span{color:var(--mut);font-size:13px}.big .e{font-size:28px}
+section{display:none}section.show{display:block}
+label.f{display:block;color:var(--mut);font-size:13px;margin:12px 0 4px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.msg{color:var(--mut);font-size:13px;margin:8px 0}.err{color:var(--bad)}
+.tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--bg);color:var(--ac);border-radius:999px;padding:3px 9px}
+.q{border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+.qh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.sm{padding:4px 9px;font-size:13px}
+.opt{display:flex;gap:8px;align-items:center;padding:4px 0}.opt input[type=radio]{width:auto;accent-color:var(--ac)}
+.mrow{display:flex;gap:8px;align-items:center;margin:6px 0}.mrow>span{flex:1}
+select{flex:1;max-width:50%;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px}
+.res{margin-top:8px;font-size:13px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.link{word-break:break-all;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px;margin:8px 0}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--bd);flex-wrap:wrap}
+.bar{height:6px;background:var(--bd);border-radius:9px;overflow:hidden;margin:8px 0 16px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .2s}
+.score{font-size:22px;font-weight:800;text-align:center}
+.av{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--ac);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.top .av{width:24px;height:24px;font-size:12px}.av.lg{width:72px;height:72px;font-size:28px}
+.badge{display:inline-block;background:var(--bg);border:1px solid var(--bd);border-radius:999px;padding:3px 10px;margin:3px 4px 0 0;font-size:13px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="top"><div class="in"><div class="brand">📝 Quizy</div>
+<nav><button data-s="home" class="on">Home</button><button data-s="board">Members</button><button data-s="acct" id="navacct">Log in</button></nav></div></div>
+<div class="wrap">
+<div class="msg err hide" id="offline">Quizy isn’t connected to its database yet. Open this file, paste your Supabase URL and key at the top, and follow the setup steps.</div>
+
+<section id="home" class="show">
+<div class="hero"><h1>Write quizzes. Share them safely.</h1><p>Paste your Google Doc link, then make a quiz or take one.</p></div>
+<div class="card"><label class="f" style="margin-top:0">Google Document link</label><input type="text" id="gdoc" placeholder="https://docs.google.com/document/d/…"><div class="row" style="margin-top:8px"><a id="gopen" class="msg hide" target="_blank" rel="noopener">Open document ↗</a></div></div>
+<div class="two">
+<button class="card big" id="gomake"><div class="e">✍️</div><b>Make a quiz</b><span>Write questions, set a passcode, get a link.</span></button>
+<button class="card big" id="gotake"><div class="e">🎯</div><b>Take a quiz</b><span>Enter the quiz name, its link and the passcode.</span></button>
+</div>
+</section>
+
+<section id="take">
+<div class="card" id="gate"><b>Take a quiz</b>
+<label class="f">Quiz name</label><input type="text" id="tname">
+<label class="f">Quiz link (paste the link you were given)</label><input type="text" id="tlink" placeholder="https://claude.ai/artifact/…#q-abc123xy">
+<label class="f">Passcode</label><input type="password" id="tpass">
+<div class="row" style="margin-top:12px"><button class="pri" id="unlock">Start quiz</button></div><div class="msg" id="tmsg"></div></div>
+<div id="quiz"></div>
+</section>
+
+<section id="acct">
+<div id="authbox">
+<div class="card"><b>Create an account</b>
+<div class="g2"><div><label class="f">Username (3 to 20 letters, numbers, _)</label><input type="text" id="su-n"></div>
+<div><label class="f">Passcode (6+ characters)</label><input type="password" id="su-p"></div></div>
+<label class="f">Profile picture (optional)</label><input type="file" id="su-f" accept="image/*">
+<div class="row" style="margin-top:12px"><button class="pri" id="signup">Sign up</button></div><div class="msg" id="su-m"></div></div>
+<div class="card"><b>Log in</b>
+<div class="g2"><div><label class="f">Username</label><input type="text" id="li-n"></div><div><label class="f">Passcode</label><input type="password" id="li-p"></div></div>
+<div class="row" style="margin-top:12px"><button class="pri" id="login">Log in</button></div><div class="msg" id="li-m"></div></div>
+</div>
+<div id="profbox" class="hide">
+<div class="card"><div class="row" style="gap:14px"><span id="pav"></span><div style="flex:1"><b id="pname" style="font-size:20px"></b><div class="msg" id="pstats" style="margin:2px 0"></div></div>
+<label class="msg" style="margin:0">Change picture <input type="file" id="pic" accept="image/*" style="width:150px"></label><button id="logout">Log out</button></div>
+<div id="pbadges" style="margin-top:8px"></div></div>
+<div class="card"><div class="row" style="justify-content:space-between"><b>My quizzes</b><button class="pri" id="newq">+ New quiz</button></div><div id="mine" class="msg">None yet.</div></div>
+</div>
+</section>
+
+<section id="board"><div class="card"><b>Members and badges</b><div id="members" class="msg">No members yet.</div></div></section>
+
+<section id="editor">
+<div class="card"><b id="eh">New quiz</b>
+<div class="g2"><div><label class="f">Quiz name</label><input type="text" id="e-title"></div>
+<div><label class="f">Passcode for takers (6+ characters)</label><input type="text" id="e-pass"></div></div>
+<label class="f">Google Doc link (shown to takers, optional)</label><input type="text" id="e-src"></div>
+<div id="qs"></div>
+<div class="card"><div class="row"><span class="msg" style="margin:0">Add a question:</span>
+<button data-add="mcq">Multiple choice</button><button data-add="tf">True / False</button><button data-add="fill">Fill in the blank</button><button data-add="match">Matching</button></div></div>
+<div class="row"><button class="pri" id="save">Save quiz</button><button id="back">Back</button></div><div class="msg" id="smsg"></div>
+<div class="card hide" id="done"><b>Quiz saved</b><div class="msg">Copy this link and share it with the quiz name and passcode.</div><div class="link" id="dlink"></div><button id="dcopy">Copy link</button></div>
+</section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* ===== PASTE YOUR SUPABASE DETAILS HERE ===== */
+window.QUIZY_CONFIG={url:'PASTE_PROJECT_URL',key:'PASTE_ANON_PUBLIC_KEY'};
+</script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)e[k]=a[k];c.flat().forEach(x=>e.append(x));return e};
+const enc=new TextEncoder(),dec=new TextDecoder();
+const b64=u=>{let s='';new Uint8Array(u).forEach(b=>s+=String.fromCharCode(b));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const pk=async p=>crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey','deriveBits']);
+const pbk=salt=>({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'});
+const dkey=async(p,salt)=>crypto.subtle.deriveKey(pbk(salt),await pk(p),{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+async function seal(o,p){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await dkey(p,salt),enc.encode(JSON.stringify(o)));return{salt:b64(salt),iv:b64(iv),ct:b64(ct)}}
+async function unseal(d,p){return JSON.parse(dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(d.iv)},await dkey(p,unb64(d.salt)),unb64(d.ct))))}
+const ver=async(p,salt)=>b64(await crypto.subtle.deriveBits(pbk(unb64(salt)),await pk(p),256));
+const base=()=>location.href.split('#')[0];
+const norm=s=>String(s).trim().toLowerCase().replace(/\s+/g,' ');
+function copy(t){const x=h('textarea',{value:t});document.body.append(x);x.select();try{document.execCommand('copy')}catch(e){}x.remove()}
+function shrink(file,px){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=px;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,px,px);res(c.toDataURL('image/jpeg',.8))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+
+let sb=null,uid=null,cur=null,items=[],profs=[],E=null;
+function show(n){$$('section').forEach(s=>s.classList.toggle('show',s.id==n));$$('.top button').forEach(b=>b.classList.toggle('on',b.dataset.s==(n=='take'||n=='editor'?'home':n)));scrollTo(0,0)}
+$$('.top button').forEach(b=>b.onclick=()=>show(b.dataset.s));
+function route(){const x=location.hash.slice(1);if(/^q-[a-z0-9]+$/.test(x)){$('#tlink').value=location.href;show('take')}}
+addEventListener('hashchange',route);route();
+const av=(p,lg)=>p&&p.avatar?h('img',{class:'av'+(lg?' lg':''),src:p.avatar,alt:''}):h('span',{class:'av'+(lg?' lg':'')},((p&&p.id)||'?')[0].toUpperCase());
+
+async function loadAll(){
+ const[p,q,a]=await Promise.all([sb.from('profiles').select('id,username,avatar,taken'),sb.from('quizzes').select('owner'),sb.from('aces').select('user_id,quiz_id,title')]);
+ const made={};(q.data||[]).forEach(x=>made[x.owner]=(made[x.owner]||0)+1);
+ profs=(p.data||[]).map(x=>({uid:x.id,id:x.username,avatar:x.avatar,taken:x.taken||0,made:made[x.id]||0,aces:(a.data||[]).filter(y=>y.user_id==x.id).map(y=>({id:y.quiz_id,title:y.title}))}));
+ refresh();
+}
+async function loadMine(){
+ if(!uid){items=[];drawMine();return}
+ const r=await sb.from('quiz_secrets').select('quiz_id,title,pass');
+ items=(r.data||[]).map(x=>({id:x.quiz_id,title:x.title,pass:x.pass}));drawMine();
+}
+async function afterAuth(){const{data}=await sb.auth.getSession();uid=data.session?data.session.user.id:null;await loadAll();const me=profs.find(x=>x.uid==uid);cur=me?me.id:null;drawAcct();loadMine()}
+async function init(){
+ const C=window.QUIZY_CONFIG||{};
+ if(!/^https:\/\//.test(C.url||'')||!C.key||!window.supabase){$('#offline').classList.remove('hide');return}
+ sb=supabase.createClient(C.url,C.key);
+ try{await afterAuth()}catch(e){$('#offline').classList.remove('hide')}
+}
+try{$('#gdoc').value=localStorage.getItem('qs_doc')||''}catch(e){}
+$('#gdoc').oninput=()=>{try{localStorage.setItem('qs_doc',$('#gdoc').value)}catch(e){}link()};
+function link(){const v=$('#gdoc').value.trim(),a=$('#gopen');a.classList.toggle('hide',!/^https:\/\//.test(v));if(/^https:\/\//.test(v))a.href=v;a.textContent='Open document ↗'}link();
+
+/* ---- badges ---- */
+function badges(p,top){
+ const b=[],m=p.made||0,a=p.aces||[];
+ if(top&&top==p.id&&m>=1)b.push('👑 Top Maker (most quizzes made)');
+ if(m>=1)b.push('🌱 Quiz Starter');if(m>=5)b.push('⚙️ Quiz Machine');
+ a.forEach(x=>b.push('💯 Aced '+x.title));
+ if(a.length>=3)b.push('🏆 Perfectionist');
+ if((p.taken||0)>=10)b.push('📚 Dedicated Learner');
+ return b;
+}
+const topMaker=()=>{const t=[...profs].sort((x,y)=>(y.made||0)-(x.made||0))[0];return t&&t.made>0?t.id:null};
+function refresh(){drawBoard();drawAcct()}
+function drawBoard(){
+ const m=$('#members');m.innerHTML='';
+ if(!profs.length){m.textContent='No members yet.';return}
+ const top=topMaker();
+ [...profs].sort((x,y)=>(y.made||0)-(x.made||0)||(y.aces||[]).length-(x.aces||[]).length).forEach(p=>{
+  m.append(h('div',{class:'item'},h('span',{class:'row'},av(p),h('b',{},p.id)),h('span',{},(p.made||0)+' made · '+(p.aces||[]).length+' aced')),
+   h('div',{style:'width:100%'},badges(p,top).map(t=>h('span',{class:'badge'},t))));
+  m.lastChild.style.flexDirection='column';m.lastChild.style.alignItems='flex-start';
+ });
+}
+
+/* ---- accounts ---- */
+function drawAcct(){
+ const p=profs.find(x=>x.id==cur),inn=!!(cur&&p);
+ $('#authbox').classList.toggle('hide',inn);$('#profbox').classList.toggle('hide',!inn);
+ $('#navacct').textContent=inn?cur:'Log in';
+ const n=$('#navacct');n.querySelector('.av')?.remove();if(inn)n.prepend(av(p));
+ if(!inn)return;
+ $('#pav').replaceChildren(av(p,true));$('#pname').textContent=cur;
+ $('#pstats').textContent=(p.made||0)+' quizzes made · '+(p.taken||0)+' taken · '+(p.aces||[]).length+' aced';
+ $('#pbadges').replaceChildren(...badges(p,topMaker()).map(t=>h('span',{class:'badge'},t)));
+}
+const DOM='@quizy-app.com',NOSB='Quizy isn’t connected to its database yet. See the setup steps.';
+$('#signup').onclick=async()=>{
+ const n=$('#su-n').value.trim().toLowerCase(),p=$('#su-p').value,m=$('#su-m');m.className='msg';
+ try{
+  if(!sb)throw NOSB;
+  if(!/^[a-z0-9_]{3,20}$/.test(n))throw'Username must be 3 to 20 letters, numbers or _.';
+  if(p.length<6)throw'Passcode needs at least 6 characters.';
+  if(profs.some(x=>x.id==n))throw'That username is taken.';
+  const{data,error}=await sb.auth.signUp({email:n+DOM,password:p});
+  if(error)throw error.message;
+  if(!data.session)throw'In Supabase, turn off "Confirm email" (Authentication, Sign In / Providers, Email), then try again.';
+  const f=$('#su-f').files[0];
+  const r=await sb.from('profiles').insert({id:data.user.id,username:n,avatar:f?await shrink(f,96):''});
+  if(r.error)throw'Could not create the profile: '+r.error.message;
+  await afterAuth();m.textContent='';
+ }catch(e){m.textContent=typeof e=='string'?e:'Could not create the account.';m.classList.add('err')}
+};
+$('#login').onclick=async()=>{
+ const n=$('#li-n').value.trim().toLowerCase(),m=$('#li-m');m.className='msg';
+ if(!sb){m.textContent=NOSB;m.classList.add('err');return}
+ const{error}=await sb.auth.signInWithPassword({email:n+DOM,password:$('#li-p').value});
+ if(error){m.textContent='Wrong username or passcode.';m.classList.add('err');return}
+ await afterAuth();m.textContent='';
+};
+$('#logout').onclick=async()=>{await sb.auth.signOut();uid=null;cur=null;items=[];drawAcct();drawMine()};
+$('#pic').onchange=async e=>{const f=e.target.files[0];if(f&&uid)try{await sb.from('profiles').update({avatar:await shrink(f,96)}).eq('id',uid);await loadAll()}catch(x){}};
+
+/* ---- home buttons ---- */
+$('#gotake').onclick=()=>show('take');
+$('#gomake').onclick=()=>{if(!cur){show('acct');alert('Log in or create an account to make quizzes.');return}openEd({id:null,title:'',src:$('#gdoc').value.trim(),pass:'',qs:[]})};
+$('#newq').onclick=$('#gomake').onclick;
+
+/* ---- my quizzes ---- */
+function drawMine(){
+ const m=$('#mine');m.innerHTML='';
+ if(!items.length){m.textContent='None yet.';return}
+ items.forEach(it=>m.append(h('div',{class:'item'},h('span',{},h('b',{},it.title),' · '+it.id),
+  h('span',{class:'row'},h('button',{class:'sm',textContent:'Copy link',onclick:()=>copy(base()+'#'+it.id)}),
+  h('button',{class:'sm',textContent:'Edit',onclick:()=>edit(it)}),h('button',{class:'sm danger',textContent:'Delete',onclick:()=>del(it)})))));
+}
+async function del(it){if(!confirm('Delete this quiz for good?'))return;const r=await sb.from('quizzes').delete().eq('id',it.id);if(r.error)alert('Could not delete.');else{await loadAll();loadMine()}}
+async function edit(it){try{const r=await sb.from('quizzes').select('payload').eq('id',it.id).single(),d=await unseal(r.data.payload,it.pass);openEd({id:it.id,title:d.title,src:d.src||'',pass:it.pass,qs:d.questions.map(q=>q.type=='fill'?{...q,alts:(q.alts||[]).join(', ')}:q)})}catch(e){alert('Could not open this quiz.')}}
+
+/* ---- editor ---- */
+function openEd(x){E=x;$('#eh').textContent=x.id?'Edit quiz':'New quiz';$('#e-title').value=x.title;$('#e-src').value=x.src;$('#e-pass').value=x.pass;$('#done').classList.add('hide');$('#smsg').textContent='';drawQs();show('editor')}
+$('#back').onclick=()=>show(cur?'acct':'home');
+const NEW={mcq:()=>({type:'mcq',q:'',options:['',''],answer:0}),tf:()=>({type:'tf',q:'',answer:true}),fill:()=>({type:'fill',q:'',answer:'',alts:''}),match:()=>({type:'match',q:'',pairs:[['',''],['','']]})};
+$$('[data-add]').forEach(b=>b.onclick=()=>{E.qs.push(NEW[b.dataset.add]());drawQs()});
+const NAMES={mcq:'Multiple choice',tf:'True / False',fill:'Fill in the blank',match:'Matching'};
+function inp(o,k,ph,tag='input'){const e=h(tag,{value:o[k]??'',placeholder:ph});if(tag=='input')e.type='text';e.oninput=()=>o[k]=e.value;return e}
+function drawQs(){
+ const box=$('#qs');box.innerHTML='';
+ E.qs.forEach((q,i)=>{
+  const mv=d=>{const j=i+d;if(j<0||j>=E.qs.length)return;[E.qs[i],E.qs[j]]=[E.qs[j],E.qs[i]];drawQs()};
+  const c=h('div',{class:'q'},h('div',{class:'qh'},h('span',{class:'tag'},(i+1)+' · '+NAMES[q.type]),
+   h('span',{class:'row'},h('button',{class:'sm',textContent:'↑',onclick:()=>mv(-1)}),h('button',{class:'sm',textContent:'↓',onclick:()=>mv(1)}),h('button',{class:'sm danger',textContent:'Remove',onclick:()=>{E.qs.splice(i,1);drawQs()}}))),
+   inp(q,'q',q.type=='fill'?'Sentence with ____ where the blank goes':q.type=='match'?'Instruction, e.g. Match each term to its definition':'Question','textarea'));
+  if(q.type=='mcq'){
+   q.options.forEach((o,j)=>c.append(h('div',{class:'opt'},h('input',{type:'radio',name:'a'+i,checked:q.answer==j,onchange:()=>q.answer=j}),inp(q.options,j,'Option '+(j+1)),q.options.length>2?h('button',{class:'sm',textContent:'✕',onclick:()=>{q.options.splice(j,1);if(q.answer>=q.options.length||q.answer==j)q.answer=0;drawQs()}}):'')));
+   c.append(h('div',{class:'msg'},'Select the circle next to the correct option.'),h('button',{class:'sm',textContent:'+ Option',onclick:()=>{if(q.options.length<8){q.options.push('');drawQs()}}}));
+  }else if(q.type=='tf'){
+   [true,false].forEach(v=>c.append(h('label',{class:'opt'},h('input',{type:'radio',name:'a'+i,checked:q.answer===v,onchange:()=>q.answer=v}),v?'True is correct':'False is correct')));
+  }else if(q.type=='fill'){
+   c.append(h('label',{class:'f'},'Correct answer'),inp(q,'answer','Answer'),h('label',{class:'f'},'Other accepted answers (comma separated, optional)'),inp(q,'alts','e.g. mitochondrion, mitochondria'));
+  }else{
+   q.pairs.forEach((p,j)=>c.append(h('div',{class:'mrow'},inp(p,0,'Term'),h('span',{},'→'),inp(p,1,'Match'),q.pairs.length>2?h('button',{class:'sm',textContent:'✕',onclick:()=>{q.pairs.splice(j,1);drawQs()}}):'')));
+   c.append(h('button',{class:'sm',textContent:'+ Pair',onclick:()=>{q.pairs.push(['','']);drawQs()}}));
+  }
+  box.append(c);
+ });
+ if(!E.qs.length)box.append(h('div',{class:'msg'},'No questions yet. Add one below.'));
+}
+function validate(){
+ if(!E.title.trim())return'Give the quiz a name.';
+ if(!E.qs.length)return'Add at least one question.';
+ if(E.pass.length<6)return'The passcode needs at least 6 characters.';
+ for(const[i,q]of E.qs.entries()){const n='Question '+(i+1)+': ';
+  if(!q.q.trim())return n+'write the question.';
+  if(q.type=='mcq'&&q.options.some(o=>!o.trim()))return n+'fill in every option.';
+  if(q.type=='fill'&&!q.answer.trim())return n+'add the correct answer.';
+  if(q.type=='match'&&q.pairs.some(p=>!p[0].trim()||!p[1].trim()))return n+'fill in every pair.'}
+ return''
+}
+$('#save').onclick=async()=>{
+ E.title=$('#e-title').value.trim();E.src=$('#e-src').value.trim();E.pass=$('#e-pass').value;
+ const m=$('#smsg');m.className='msg';const v=validate();
+ if(v){m.textContent=v;m.classList.add('err');return}
+ if(!sb||!uid||!cur){m.textContent='Log in to save quizzes.';m.classList.add('err');return}
+ $('#save').disabled=true;m.textContent='Saving…';
+ try{
+  const qs=E.qs.map(q=>q.type=='fill'?{...q,alts:String(q.alts).split(',').map(s=>s.trim()).filter(Boolean)}:q);
+  const isNew=!E.id,id=E.id||'q-'+[...crypto.getRandomValues(new Uint8Array(8))].map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
+  const q1=await sb.from('quizzes').upsert({id,owner:uid,payload:await seal({title:E.title,src:E.src,questions:qs},E.pass),updated_at:new Date().toISOString()});if(q1.error)throw q1.error;
+  const q2=await sb.from('quiz_secrets').upsert({quiz_id:id,owner:uid,title:E.title,pass:E.pass});if(q2.error)throw q2.error;
+  await loadAll();loadMine();
+  E.id=id;$('#eh').textContent='Edit quiz';
+  $('#dlink').textContent=base()+'#'+id;$('#dcopy').onclick=()=>copy(base()+'#'+id);$('#done').classList.remove('hide');m.textContent='';
+ }catch(e){m.textContent='Could not save the quiz.';m.classList.add('err')}
+ $('#save').disabled=false;
+};
+
+/* ---- take ---- */
+$('#unlock').onclick=async()=>{
+ const name=$('#tname').value,mm=($('#tlink').value.match(/q-[a-z0-9]+/i)||[])[0],p=$('#tpass').value,m=$('#tmsg');m.className='msg';
+ if(!sb){m.textContent=NOSB;m.classList.add('err');return}
+ m.textContent='Opening…';
+ try{
+  if(!mm||!p||!name.trim())throw 0;
+  const r=await sb.from('quizzes').select('payload').eq('id',mm.toLowerCase()).maybeSingle();if(!r.data)throw 0;
+  const qz=await unseal(r.data.payload,p);if(norm(qz.title)!=norm(name))throw 0;
+  m.textContent='';qz.id=mm.toLowerCase();render(qz);
+ }catch(e){m.textContent='Wrong quiz name, link or passcode.';m.classList.add('err')}
+};
+function render(qz){
+ $('#gate').classList.add('hide');
+ const box=$('#quiz');box.innerHTML='';box.append(h('h2',{},qz.title));
+ if(/^https:\/\//.test(qz.src||''))box.append(h('div',{class:'msg'},'Source: ',h('a',{href:qz.src,target:'_blank',rel:'noopener',textContent:'Google Doc'})));
+ const bar=h('i'),checks=[];box.append(h('div',{class:'bar'},bar));
+ const prog=()=>{bar.style.width=100*checks.filter(k=>k.done()).length/checks.length+'%'};
+ qz.questions.forEach((q,i)=>{
+  const c=h('div',{class:'q',oninput:prog,onchange:prog},h('b',{},(i+1)+'. '+q.q));
+  let get,grade,shown;
+  if(q.type=='mcq'){
+   q.options.forEach((o,j)=>c.append(h('label',{class:'opt'},h('input',{type:'radio',name:'r'+i,value:j}),o)));
+   get=()=>{const x=c.querySelector('input:checked');return x?+x.value:-1};grade=a=>[a===q.answer?1:0,1];shown=q.options[q.answer];
+  }else if(q.type=='tf'){
+   ['true','false'].forEach(v=>c.append(h('label',{class:'opt'},h('input',{type:'radio',name:'r'+i,value:v}),v=='true'?'True':'False')));
+   get=()=>{const x=c.querySelector('input:checked');return x?x.value:''};grade=a=>[a===String(q.answer)?1:0,1];shown=q.answer?'True':'False';
+  }else if(q.type=='fill'){
+   const f=h('input',{type:'text',placeholder:'Your answer'});c.append(f);get=()=>f.value;
+   grade=a=>[[q.answer,...(q.alts||[])].some(x=>norm(x)==norm(a))?1:0,1];shown=q.answer;
+  }else{
+   const rights=q.pairs.map(p=>p[1]).sort(()=>Math.random()-.5),sels=[];
+   q.pairs.forEach(p=>{const s=h('select',{},h('option',{value:''},'Choose…'),rights.map(r=>h('option',{value:r},r)));sels.push(s);c.append(h('div',{class:'mrow'},h('span',{},p[0]),s))});
+   get=()=>sels.map(s=>s.value);grade=a=>[q.pairs.filter((p,k)=>a[k]===p[1]).length,q.pairs.length];shown=q.pairs.map(p=>p[0]+' → '+p[1]).join('; ');
+  }
+  const done=()=>{const a=get();return Array.isArray(a)?a.every(Boolean):a!==-1&&a!==''};
+  checks.push({c,get,grade,shown,done});box.append(c);
+ });
+ const sub=h('button',{class:'pri',textContent:'Submit answers'}),out=h('div',{class:'card score hide'});
+ sub.onclick=async()=>{
+  let sc=0,mx=0;
+  checks.forEach(k=>{const[s,m]=k.grade(k.get());sc+=s;mx+=m;
+   k.c.querySelectorAll('input,select').forEach(x=>x.disabled=true);
+   k.c.append(h('div',{class:'res '+(s==m?'ok':'bad')},(s==m?'Correct':'Score '+s+'/'+m)+' · Answer: '+k.shown))});
+  out.classList.remove('hide');out.textContent='Your score: '+sc+' / '+mx+' ('+Math.round(100*sc/mx)+'%)';sub.disabled=true;
+  if(sc==mx)out.append(h('div',{class:'msg'},cur?'💯 Perfect score! Badge earned.':'💯 Perfect score! Log in next time to earn a badge.'));
+  out.scrollIntoView({behavior:'smooth'});
+  if(cur&&uid)try{const me=profs.find(x=>x.uid==uid);await sb.from('profiles').update({taken:(me?me.taken:0)+1}).eq('id',uid);if(sc==mx)await sb.from('aces').upsert({user_id:uid,quiz_id:qz.id,title:qz.title},{onConflict:'user_id,quiz_id',ignoreDuplicates:true});await loadAll()}catch(e){}
+ };
+ box.append(h('div',{class:'row'},sub),out);
+}
+drawAcct();init();
+</script>
+</body>
+</html>
